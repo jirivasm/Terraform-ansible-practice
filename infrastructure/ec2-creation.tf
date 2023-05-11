@@ -57,7 +57,7 @@ resource "aws_instance" "my_ec2" {
       "ansible --version",
       "echo installing git",
       "sudo yum install git -y",
-      "git clone https://github.com/jirivasm/ansible-practice"
+      "git clone https://github.com/jirivasm/ansible-practice/ansible"
     ]
   }
 }
@@ -67,14 +67,21 @@ resource "aws_key_pair" "myssh-key" {
     public_key = file("~/aws/aws_keys/id_rsa.pub")
 }
 resource "aws_security_group" "allow_ssh"{
-    name        = "allow_ssh"
-    description = "Allow ssh inbound traffic"
+    name        = "allow_ssh and http"
+    description = "Allow ssh and http inbound traffic"
     vpc_id      = data.aws_vpc.default_vpc.id
 
     ingress {
         description      = "Allow SSH"
         from_port        = 22
         to_port          = 22
+        protocol         = "tcp"
+        cidr_blocks      = ["0.0.0.0/0"]
+    }
+    ingress {
+        description      = "Allow http"
+        from_port        = 80
+        to_port          = 80
         protocol         = "tcp"
         cidr_blocks      = ["0.0.0.0/0"]
     }
