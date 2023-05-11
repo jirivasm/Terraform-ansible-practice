@@ -54,7 +54,10 @@ resource "aws_instance" "my_ec2" {
       "echo installing ansible",
       "python3 -m pip install --user ansible",
       "python3 -m pip install --upgrade --user ansible",
-      "ansible --version"
+      "ansible --version",
+      "echo installing git",
+      "sudo yum install git -y",
+      "git clone https://github.com/jirivasm/ansible-practice"
     ]
   }
 }
