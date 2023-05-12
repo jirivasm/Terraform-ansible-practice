@@ -1,39 +1,10 @@
-data "aws_ami" "amazon_linux_ami" {
-  most_recent = true
-  owners      = ["amazon"]
-    filter {
-    name   = "name"
-    values = ["al2023-ami-2023.0.20230503.0-kernel-6.1-x86_64"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  filter {
-    name   = "root-device-type"
-    values = ["ebs"]
-  }
-
-  filter {
-    name   = "architecture"
-    values = ["x86_64"]
-  }
-
-}
-data "aws_vpc" "default_vpc"{
-    default = true
-}
-resource "aws_instance" "my_ec2" {
-    //count = 4
-
+resource "aws_instance" "my_ec2_master_node" {
+      
     instance_type = "t2.micro"
     ami = "${data.aws_ami.amazon_linux_ami.id}"
     key_name = aws_key_pair.myssh-key.key_name
     tags = {
-        //Name = count.index == 0 ? "master" : "server_${count.index}"
-        Name = "test"
+        Name = "master"
     }
     vpc_security_group_ids = [aws_security_group.allow_ssh.id]
 
@@ -44,6 +15,7 @@ resource "aws_instance" "my_ec2" {
     host = self.public_ip
   }
 
+  
   provisioner "remote-exec" {
     inline = [
       "echo updating yum",
@@ -57,43 +29,26 @@ resource "aws_instance" "my_ec2" {
       "ansible --version",
       "echo installing git",
       "sudo yum install git -y",
-      "git clone https://github.com/jirivasm/ansible-practice/ansible"
+      "git clone https://github.com/jirivasm/ansible-practice"
     ]
   }
-}
-
-resource "aws_key_pair" "myssh-key" {
-    key_name = "ssh-key"
-    public_key = file("~/aws/aws_keys/id_rsa.pub")
-}
-resource "aws_security_group" "allow_ssh"{
-    name        = "allow_ssh and http"
-    description = "Allow ssh and http inbound traffic"
-    vpc_id      = data.aws_vpc.default_vpc.id
-
-    ingress {
-        description      = "Allow SSH"
-        from_port        = 22
-        to_port          = 22
-        protocol         = "tcp"
-        cidr_blocks      = ["0.0.0.0/0"]
-    }
-    ingress {
-        description      = "Allow http"
-        from_port        = 80
-        to_port          = 80
-        protocol         = "tcp"
-        cidr_blocks      = ["0.0.0.0/0"]
-    }
-
-    egress {
-        from_port        = 0
-        to_port          = 0
-        protocol         = "-1"
-        cidr_blocks      = ["0.0.0.0/0"]
-    }
-
-  tags = {
-    Name = "allow_ssh"
+  provisioner "local-exec"{
+    command = "scp -i ~/aws/aws_keys/id_rsa ~/aws/aws_keys/id_rsa ec2-user@${aws_instance.my_ec2_master_node.public_dns}:~/.ssh"
   }
 }
+resource "aws_instance" "my_ec2_slave_nodes" {
+    count = 3
+
+    
+    instance_type = "t2.micro"
+    ami = "${data.aws_ami.amazon_linux_ami.id}"
+    key_name = aws_key_pair.myssh-key.key_name
+    tags = {
+        Name = "server_${count.index}"
+    }
+    vpc_security_group_ids = [aws_security_group.allow_ssh.id]
+
+}
+
+
+
