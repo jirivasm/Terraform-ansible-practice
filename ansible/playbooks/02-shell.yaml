@@ -1,5 +1,5 @@
 ---
-- hosts: all
+- hosts: prod
   tasks:
     - name: execute shell commands
       shell: uname
