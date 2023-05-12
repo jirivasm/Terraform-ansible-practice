@@ -1,7 +1,6 @@
 [dev]
-18.223.190.9
-3.145.209.80
+dev1 ansible_host=18.223.190.9
+dev2 ansible_host=3.145.209.80
 
 [prod]
-3.21.231.46
-3.15.230.236
+prod1 ansible_host=3.21.231.46
