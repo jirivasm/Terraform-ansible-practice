@@ -4,3 +4,6 @@
     - name: Ping All Servers
       action: ping
     - debug: msg="hello"
+- hosts: dev
+  tasks:
+    - debug: msg="hello devs"
